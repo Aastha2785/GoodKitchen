@@ -1,4 +1,9 @@
+
 .env
 best_model.pth
 __pycache__/
 static/uploads/
+Vegetable Images/
+*.pth
+
+

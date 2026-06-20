@@ -13,7 +13,15 @@ load_dotenv()
 app = Flask(__name__)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+import urllib.request
 
+MODEL_URL = "https://github.com/Aastha2785/GoodKitchen/releases/download/v1.0/best_model.pth"
+MODEL_PATH = "best_model.pth"
+
+if not os.path.exists(MODEL_PATH):
+    print("Downloading model...")
+    urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+    print("Model downloaded!")
 with open('class_names.json', 'r') as f:
     class_names = json.load(f)
 
@@ -27,7 +35,7 @@ transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406],
-                         [0.229, 0.224, 0.225])
+                        [0.229, 0.224, 0.225])
 ])
 
 inventory = []

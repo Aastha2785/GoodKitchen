@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="green">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>GoodKitchen</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <style>
+        :root[data-theme="green"] {
+            --accent: #2d6a4f; --accent-light: #eaf3de; --accent-mid: #639922;
+            --tag-bg: #c0dd97; --tag-text: #27500a; --topbar-text: #fff;
+        }
+        :root[data-theme="dark"] {
+            --accent: #1D9E75; --accent-light: #04342C; --accent-mid: #1D9E75;
+            --tag-bg: #085041; --tag-text: #9FE1CB; --topbar-text: #fff;
+        }
+        :root[data-theme="pink"] {
+            --accent: #D4537E; --accent-light: #FBEAF0; --accent-mid: #993556;
+            --tag-bg: #F4C0D1; --tag-text: #4B1528; --topbar-text: #fff;
+        }
+        :root[data-theme="blue"] {
+            --accent: #185FA5; --accent-light: #E6F1FB; --accent-mid: #378ADD;
+            --tag-bg: #B5D4F4; --tag-text: #042C53; --topbar-text: #fff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--accent-light);
+            min-height: 100vh;
+            color: #1a1a1a;
+        }
+
+        [data-theme="dark"] body { background: #0d0d0d; color: #eee; }
+        [data-theme="dark"] .card { background: #1c1c1c; border-color: #2a2a2a; }
+        [data-theme="dark"] .section-label { color: #777; }
+        [data-theme="dark"] input[type="text"] { background: #111; border-color: #333; color: #eee; }
+        [data-theme="dark"] .output-box { background: #111; color: #ccc; border-color: #2a2a2a; }
+        [data-theme="dark"] .history-item { border-color: #2a2a2a; }
+        [data-theme="dark"] .recipe-card { border-color: #2a2a2a; }
+        [data-theme="dark"] .empty-msg { color: #555; }
+        [data-theme="dark"] .bottom-nav { background: #1c1c1c; border-color: #2a2a2a; }
+        [data-theme="dark"] .tab-btn { color: #666; }
+        [data-theme="dark"] .tab-btn.active { color: var(--accent); }
+        [data-theme="dark"] .modal-box { background: #1c1c1c; }
+        [data-theme="dark"] .modal-content { color: #ccc; }
+        [data-theme="dark"] .modal-close { background: #2a2a2a; color: #aaa; }
+        [data-theme="dark"] .missing-box { background: #1a1200; border-color: #3a2800; }
+        [data-theme="dark"] .missing-box b { color: #FAC775; }
+        [data-theme="dark"] .missing-box span { color: #EF9F27; }
+
+        /* TOPBAR */
+        .topbar {
+            background: var(--accent);
+            padding: 0 16px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topbar-logo {
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .theme-dots { display: flex; gap: 7px; align-items: center; }
+        .theme-dot {
+            width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.3); transition: transform 0.15s, border-color 0.15s;
+        }
+        .theme-dot.active { border-color: white; transform: scale(1.15); }
+        .dot-green { background: #2d6a4f; }
+        .dot-dark { background: #111; }
+        .dot-pink { background: #D4537E; }
+        .dot-blue { background: #185FA5; }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .tab-btn {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 8px 4px 6px;
+            background: none; border: none; cursor: pointer;
+            color: #aaa; font-size: 10px; gap: 3px; transition: color 0.15s;
+        }
+        .tab-btn i { font-size: 22px; }
+        .tab-btn.active { color: var(--accent); }
+        .tab-btn span { font-weight: 500; }
+
+        /* PAGES */
+        .page { display: none; padding: 12px 12px 80px; }
+        .page.active { display: block; }
+
+        /* CARDS */
+        .card {
+            background: white;
+            border: 1px solid #ebebeb;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+
+        .section-label {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.7px;
+            text-transform: uppercase; color: #999; margin-bottom: 10px;
+        }
+
+        /* DETECT AREA */
+        .detect-area {
+            border: 1.5px dashed var(--accent-mid);
+            border-radius: 12px;
+            padding: 28px 16px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--accent-light);
+            transition: opacity 0.15s;
+            user-select: none;
+        }
+        .detect-area:active { opacity: 0.7; }
+        .detect-area i { font-size: 36px; color: var(--accent); display: block; margin-bottom: 8px; }
+        .detect-area p { font-size: 13px; color: #888; }
+        #imageInput { display: none; }
+        .detect-result { margin-top: 10px; font-size: 13px; font-weight: 500; color: var(--accent); min-height: 18px; }
+
+        /* INPUTS */
+        .input-row { display: flex; gap: 8px; }
+        input[type="text"] {
+            flex: 1; padding: 10px 12px;
+            border: 1px solid #e0e0e0; border-radius: 10px;
+            font-size: 14px; outline: none;
+            transition: border 0.15s;
+            min-width: 0;
+        }
+        input[type="text"]:focus { border-color: var(--accent); }
+
+        /* BUTTONS */
+        .btn {
+            padding: 10px 14px; border-radius: 10px; border: none;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 5px;
+            transition: opacity 0.15s; white-space: nowrap;
+        }
+        .btn:active { opacity: 0.75; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-ghost { background: var(--accent-light); color: var(--accent); border: 1px solid var(--tag-bg); }
+        .btn-danger { background: #FCEBEB; color: #A32D2D; border: 1px solid #F7C1C1; }
+        .btn-success { background: #EAF3DE; color: #3B6D11; border: 1px solid #C0DD97; }
+        .btn-sm { padding: 6px 11px; font-size: 12px; border-radius: 8px; }
+        .btn-full { width: 100%; justify-content: center; padding: 12px; font-size: 14px; }
+
+        /* INVENTORY */
+        .inventory-tags { display: flex; flex-wrap: wrap; gap: 8px; min-height: 36px; }
+        .veg-tag {
+            background: var(--tag-bg); color: var(--tag-text);
+            padding: 6px 11px; border-radius: 20px;
+            font-size: 13px; font-weight: 500;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .veg-tag button {
+            background: none; border: none; cursor: pointer;
+            color: var(--tag-text); font-size: 14px; padding: 0; line-height: 1; opacity: 0.6;
+        }
+        .veg-tag button:active { opacity: 1; }
+        .empty-msg { font-size: 13px; color: #ccc; padding: 4px 0; }
+
+        /* BADGE */
+        .badge {
+            font-size: 11px; padding: 2px 7px; border-radius: 20px;
+            font-weight: 600; background: var(--accent-light); color: var(--accent);
+            min-width: 20px; text-align: center;
+        }
+
+        /* SECTION HEADER */
+        .section-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 15px; font-weight: 600; color: var(--accent);
+            display: flex; align-items: center; gap: 7px;
+        }
+        .section-title i { font-size: 18px; }
+
+        /* OUTPUT BOX */
+        .output-box {
+            background: #fafafa; border: 1px solid #f0f0f0;
+            border-radius: 10px; padding: 12px 14px;
+            font-size: 13px; line-height: 1.7;
+            white-space: pre-line; color: #333; margin-top: 10px;
+        }
+
+        /* RECIPE CARDS */
+        .recipe-card {
+            padding: 10px 0; border-bottom: 1px solid #f5f5f5;
+        }
+        .recipe-card:last-child { border-bottom: none; }
+        .recipe-name { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+        .recipe-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        /* HISTORY / SHOPPING */
+        .list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid #f5f5f5;
+        }
+        .list-item:last-child { border-bottom: none; }
+        .item-name { font-size: 14px; font-weight: 500; }
+        .item-sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+        /* SHOP ITEM */
+        .shop-row { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .shop-row input[type="checkbox"] {
+            width: 18px; height: 18px; accent-color: var(--accent);
+            flex-shrink: 0; cursor: pointer;
+        }
+        .shop-label { font-size: 14px; cursor: pointer; }
+        .shop-label.done { text-decoration: line-through; color: #bbb; }
+
+        /* MISSING BOX */
+        .missing-box {
+            margin-top: 10px; padding: 10px 12px;
+            background: #FAEEDA; border-radius: 10px;
+            font-size: 13px; border: 1px solid #FAC775;
+        }
+        .missing-box b { color: #854F0B; display: block; margin-bottom: 3px; }
+        .missing-box span { color: #633806; }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 200;
+            overflow-y: auto; padding: 16px;
+        }
+        .modal-overlay.open { display: block; }
+        .modal-box {
+            background: white; border-radius: 16px;
+            padding: 20px; max-width: 560px;
+            margin: 0 auto; position: relative;
+        }
+        .modal-title { font-size: 16px; font-weight: 600; color: var(--accent); margin-bottom: 12px; padding-right: 32px; }
+        .modal-content { font-size: 13px; line-height: 1.8; white-space: pre-line; color: #333; }
+        .modal-close {
+            position: absolute; top: 14px; right: 14px;
+            background: #f5f5f5; border: none; border-radius: 8px;
+            width: 30px; height: 30px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; color: #555;
+        }
+
+        /* SPINNER */
+        .spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* DESKTOP LAYOUT */
+        @media (min-width: 768px) {
+            .bottom-nav { display: none; }
+            .page { display: none; padding: 0; }
+            .page.active { display: block; }
+
+            .desktop-layout {
+                display: grid;
+                grid-template-columns: 280px 1fr;
+                min-height: calc(100vh - 52px);
+            }
+            .sidebar {
+                background: white;
+                border-right: 1px solid #e8e8e8;
+                padding: 16px;
+                position: sticky;
+                top: 52px;
+                height: calc(100vh - 52px);
+                overflow-y: auto;
+            }
+            [data-theme="dark"] .sidebar { background: #1c1c1c; border-color: #2a2a2a; }
+            .main-area { padding: 16px; }
+
+            .sidebar-page { display: block !important; padding: 0; }
+            .main-page { display: block !important; padding: 0; }
+        }
+
+        @media (max-width: 767px) {
+            .desktop-layout { display: block; }
+            .sidebar { display: none; }
+            .main-area { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-logo">
+        <i class="ti ti-tool-kitchen-2" aria-hidden="true"></i>
+        GoodKitchen
+    </div>
+    <div class="theme-dots">
+        <div class="theme-dot dot-green active" onclick="setTheme('green',this)" title="Green"></div>
+        <div class="theme-dot dot-dark" onclick="setTheme('dark',this)" title="Dark"></div>
+        <div class="theme-dot dot-pink" onclick="setTheme('pink',this)" title="Pink"></div>
+        <div class="theme-dot dot-blue" onclick="setTheme('blue',this)" title="Blue"></div>
+    </div>
+</div>
+
+<!-- DESKTOP LAYOUT -->
+<div class="desktop-layout">
+    <!-- SIDEBAR (desktop only) -->
+    <div class="sidebar">
+        <div class="section-label">Detect vegetable</div>
+        <div class="detect-area" onclick="document.getElementById('imageInput').click()">
+            <i class="ti ti-camera" aria-hidden="true"></i>
+            <p>Click to upload a photo</p>
+        </div>
+        <input type="file" id="imageInput" accept="image/*" onchange="detectVegetable()">
+        <div class="detect-result" id="detection-result-desk"></div>
+
+        <div style="margin-top:16px; margin-bottom:16px; border-top:1px solid #f0f0f0;"></div>
+
+        <div class="section-label">Add manually</div>
+        <div class="input-row">
+            <input type="text" id="manualInput-desk" placeholder="Onion, Garlic..." onkeydown="if(event.key==='Enter') addManual('desk')">
+            <button class="btn btn-primary btn-sm" onclick="addManual('desk')"><i class="ti ti-plus"></i></button>
+        </div>
+
+        <div style="margin-top:16px; margin-bottom:16px; border-top:1px solid #f0f0f0;"></div>
+
+        <div class="section-header">
+            <div class="section-title" style="font-size:13px;">
+                <i class="ti ti-basket" aria-hidden="true"></i> Inventory
+                <span class="badge" id="inv-count-desk">0</span>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="clearInventory()"><i class="ti ti-trash"></i></button>
+        </div>
+        <div class="inventory-tags" id="inventory-desk"></div>
+    </div>
+
+    <!-- MAIN AREA (desktop only) -->
+    <div class="main-area">
+        <!-- Recipes -->
+        <div class="card">
+            <div class="section-header">
+                <div class="section-title"><i class="ti ti-sparkles" aria-hidden="true"></i> Recipe suggestions</div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="getRecipes('desk')">
+                <i class="ti ti-wand"></i> Suggest from my inventory
+            </button>
+            <div id="recipes-output-desk"></div>
+        </div>
+
+        <!-- Recipe Search -->
+        <div class="card">
+            <div class="section-header">
+                <div class="section-title"><i class="ti ti-search" aria-hidden="true"></i> Search a recipe</div>
+            </div>
+            <div class="input-row">
+                <input type="text" id="recipeInput-desk" placeholder="e.g. Dal Makhani, Sambar..." onkeydown="if(event.key==='Enter') searchRecipe('desk')">
+                <button class="btn btn-primary" onclick="searchRecipe('desk')">Search</button>
+            </div>
+            <div id="search-output-desk"></div>
+        </div>
+
+        <!-- Shopping List -->
+        <div class="card">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="ti ti-shopping-cart" aria-hidden="true"></i> Shopping list
+                    <span class="badge" id="shop-count-desk">0</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-ghost btn-sm" onclick="shareList()"><i class="ti ti-share"></i> Share</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearShopping()"><i class="ti ti-trash"></i></button>
+                </div>
+            </div>
+            <div id="shopping-desk"><span class="empty-msg">Search a recipe to auto-fill</span></div>
+        </div>
+
+        <!-- History -->
+        <div class="card">
+            <div class="section-header">
+                <div class="section-title"><i class="ti ti-history" aria-hidden="true"></i> Cooking history</div>
+                <button class="btn btn-danger btn-sm" onclick="clearHistory()"><i class="ti ti-trash"></i> Clear</button>
+            </div>
+            <div id="history-desk"><span class="empty-msg">No dishes cooked yet</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- MOBILE PAGES -->
+<div id="page-detect" class="page active">
+    <div class="card">
+        <div class="section-label">Detect vegetable</div>
+        <div class="detect-area" onclick="document.getElementById('imageInputMob').click()">
+            <i class="ti ti-camera" aria-hidden="true"></i>
+            <p>Tap to upload a photo</p>
+        </div>
+        <input type="file" id="imageInputMob" accept="image/*" capture="environment" onchange="detectVegetableMob()">
+        <div class="detect-result" id="detection-result-mob"></div>
+    </div>
+
+    <div class="card">
+        <div class="section-label">Add manually</div>
+        <div class="input-row">
+            <input type="text" id="manualInput-mob" placeholder="Onion, Garlic..." onkeydown="if(event.key==='Enter') addManual('mob')">
+            <button class="btn btn-primary btn-sm" onclick="addManual('mob')"><i class="ti ti-plus"></i></button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="ti ti-basket" aria-hidden="true"></i> Inventory
+                <span class="badge" id="inv-count-mob">0</span>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="clearInventory()"><i class="ti ti-trash"></i></button>
+        </div>
+        <div class="inventory-tags" id="inventory-mob"></div>
+    </div>
+</div>
+
+<div id="page-recipes" class="page">
+    <div class="card">
+        <div class="section-title" style="margin-bottom:12px;"><i class="ti ti-sparkles" aria-hidden="true"></i> Recipe suggestions</div>
+        <button class="btn btn-primary btn-full" onclick="getRecipes('mob')">
+            <i class="ti ti-wand"></i> Suggest from my inventory
+        </button>
+        <div id="recipes-output-mob"></div>
+    </div>
+
+    <div class="card">
+        <div class="section-title" style="margin-bottom:12px;"><i class="ti ti-search" aria-hidden="true"></i> Search a recipe</div>
+        <div class="input-row">
+            <input type="text" id="recipeInput-mob" placeholder="Dal Makhani, Sambar..." onkeydown="if(event.key==='Enter') searchRecipe('mob')">
+            <button class="btn btn-primary btn-sm" onclick="searchRecipe('mob')">Go</button>
+        </div>
+        <div id="search-output-mob"></div>
+    </div>
+</div>
+
+<div id="page-shopping" class="page">
+    <div class="card">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="ti ti-shopping-cart" aria-hidden="true"></i> Shopping list
+                <span class="badge" id="shop-count-mob">0</span>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="btn btn-ghost btn-sm" onclick="shareList()"><i class="ti ti-share"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="clearShopping()"><i class="ti ti-trash"></i></button>
+            </div>
+        </div>
+        <div id="shopping-mob"><span class="empty-msg">Search a recipe to auto-fill</span></div>
+    </div>
+</div>
+
+<div id="page-history" class="page">
+    <div class="card">
+        <div class="section-header">
+            <div class="section-title"><i class="ti ti-history" aria-hidden="true"></i> Cooking history</div>
+            <button class="btn btn-danger btn-sm" onclick="clearHistory()"><i class="ti ti-trash"></i></button>
+        </div>
+        <div id="history-mob"><span class="empty-msg">No dishes cooked yet</span></div>
+    </div>
+</div>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+    <button class="tab-btn active" id="tab-detect" onclick="showTab('detect')">
+        <i class="ti ti-camera"></i><span>Detect</span>
+    </button>
+    <button class="tab-btn" id="tab-recipes" onclick="showTab('recipes')">
+        <i class="ti ti-sparkles"></i><span>Recipes</span>
+    </button>
+    <button class="tab-btn" id="tab-shopping" onclick="showTab('shopping')">
+        <i class="ti ti-shopping-cart"></i><span>Shopping</span>
+    </button>
+    <button class="tab-btn" id="tab-history" onclick="showTab('history')">
+        <i class="ti ti-history"></i><span>History</span>
+    </button>
+</nav>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+        <div class="modal-title" id="modal-title"></div>
+        <div class="modal-content" id="modal-content"></div>
+    </div>
+</div>
+
+<script>
+let inventory = JSON.parse(localStorage.getItem('gk-inventory') || '[]');
+let shoppingList = JSON.parse(localStorage.getItem('gk-shopping') || '[]');
+let history = JSON.parse(localStorage.getItem('gk-history') || '[]');
+
+function setTheme(theme, el) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('gk-theme', theme);
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+    if (el) el.classList.add('active');
+}
+const savedTheme = localStorage.getItem('gk-theme');
+if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    const dot = document.querySelector('.dot-' + savedTheme);
+    if (dot) { document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active')); dot.classList.add('active'); }
+}
+
+function showTab(tab) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + tab).classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function updateInventoryUI() {
+    const count = inventory.length;
+    ['mob', 'desk'].forEach(s => {
+        const el = document.getElementById('inventory-' + s);
+        const cnt = document.getElementById('inv-count-' + s);
+        if (!el) return;
+        if (cnt) cnt.textContent = count;
+        if (count === 0) {
+            el.innerHTML = '<span class="empty-msg">No vegetables yet</span>';
+        } else {
+            el.innerHTML = inventory.map(v => `
+                <span class="veg-tag">${v}
+                    <button onclick="removeVegetable('${v.replace(/'/g,"\\'")}')"><i class="ti ti-x"></i></button>
+                </span>`).join('');
+        }
+    });
+    localStorage.setItem('gk-inventory', JSON.stringify(inventory));
+}
+
+function updateShoppingUI() {
+    const count = shoppingList.length;
+    ['mob', 'desk'].forEach(s => {
+        const el = document.getElementById('shopping-' + s);
+        const cnt = document.getElementById('shop-count-' + s);
+        if (!el) return;
+        if (cnt) cnt.textContent = count;
+        if (count === 0) {
+            el.innerHTML = '<span class="empty-msg">Search a recipe to auto-fill</span>';
+        } else {
+            el.innerHTML = shoppingList.map((item, i) => `
+                <div class="list-item">
+                    <div class="shop-row">
+                        <input type="checkbox" id="s${s}${i}" ${item.done ? 'checked' : ''} onchange="toggleShop(${i})">
+                        <label class="shop-label ${item.done ? 'done' : ''}" for="s${s}${i}">${item.name}</label>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="removeShop(${i})"><i class="ti ti-x"></i></button>
+                </div>`).join('');
+        }
+    });
+    localStorage.setItem('gk-shopping', JSON.stringify(shoppingList));
+}
+
+function updateHistoryUI() {
+    ['mob', 'desk'].forEach(s => {
+        const el = document.getElementById('history-' + s);
+        if (!el) return;
+        if (history.length === 0) {
+            el.innerHTML = '<span class="empty-msg">No dishes cooked yet</span>';
+        } else {
+            el.innerHTML = history.map((e, i) => `
+                <div class="list-item">
+                    <div>
+                        <div class="item-name">${e.dish}</div>
+                        <div class="item-sub">${e.date}</div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="removeHistory(${i})"><i class="ti ti-x"></i></button>
+                </div>`).join('');
+        }
+    });
+    localStorage.setItem('gk-history', JSON.stringify(history));
+}
+
+function removeHistory(i) { history.splice(i, 1); updateHistoryUI(); }
+function clearHistory() { if (confirm('Clear all cooking history?')) { history = []; updateHistoryUI(); } }
+function toggleShop(i) { shoppingList[i].done = !shoppingList[i].done; updateShoppingUI(); }
+function removeShop(i) { shoppingList.splice(i, 1); updateShoppingUI(); }
+function clearShopping() { if (confirm('Clear shopping list?')) { shoppingList = []; updateShoppingUI(); } }
+
+function addToShopping(items) {
+    items.forEach(item => {
+        const exists = shoppingList.some(s => s.name.toLowerCase() === item.toLowerCase());
+        if (!exists) shoppingList.push({ name: item, done: false });
+    });
+    updateShoppingUI();
+}
+
+function shareList() {
+    const pending = shoppingList.filter(i => !i.done).map(i => '• ' + i.name).join('\n');
+    if (!pending) { alert('Shopping list is empty!'); return; }
+    const text = 'GoodKitchen Shopping List:\n\n' + pending;
+    if (navigator.share) {
+        navigator.share({ title: 'GoodKitchen Shopping List', text });
+    } else {
+        navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+    }
+}
+
+function askIfCooked(name) {
+    if (confirm(`Did you cook "${name}"?\n\nTap OK to save to history!`)) {
+        const date = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        history.unshift({ dish: name, date });
+        updateHistoryUI();
+    }
+}
+
+async function detectVegetable() {
+    const file = document.getElementById('imageInput').files[0];
+    if (!file) return;
+    const el = document.getElementById('detection-result-desk');
+    el.innerHTML = '<i class="ti ti-loader spinner"></i> Detecting...';
+    const formData = new FormData();
+    formData.append('image', file);
+    const res = await fetch('/detect', { method: 'POST', body: formData });
+    const data = await res.json();
+    el.innerHTML = '<i class="ti ti-check"></i> Detected: <b>' + data.vegetable + '</b>';
+    inventory = data.inventory;
+    updateInventoryUI();
+}
+
+async function detectVegetableMob() {
+    const file = document.getElementById('imageInputMob').files[0];
+    if (!file) return;
+    const el = document.getElementById('detection-result-mob');
+    el.innerHTML = '<i class="ti ti-loader spinner"></i> Detecting...';
+    const formData = new FormData();
+    formData.append('image', file);
+    const res = await fetch('/detect', { method: 'POST', body: formData });
+    const data = await res.json();
+    el.innerHTML = '<i class="ti ti-check"></i> Detected: <b>' + data.vegetable + '</b>';
+    inventory = data.inventory;
+    updateInventoryUI();
+}
+
+async function addManual(src) {
+    const input = document.getElementById('manualInput-' + src);
+    const val = input.value.trim();
+    if (!val) return;
+    const items = val.split(',').map(i => i.trim()).filter(i => i);
+    const res = await fetch('/add_manual', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items })
+    });
+    const data = await res.json();
+    inventory = data.inventory;
+    input.value = '';
+    updateInventoryUI();
+}
+
+async function removeVegetable(item) {
+    const res = await fetch('/remove', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item })
+    });
+    const data = await res.json();
+    inventory = data.inventory;
+    updateInventoryUI();
+}
+
+async function clearInventory() {
+    if (!confirm('Clear all vegetables?')) return;
+    const res = await fetch('/clear', { method: 'POST' });
+    const data = await res.json();
+    inventory = data.inventory;
+    updateInventoryUI();
+}
+
+function buildRecipeHTML(recipesText, src) {
+    const lines = recipesText.split('\n');
+    let html = '<div style="margin-top:10px;">';
+    lines.forEach(line => {
+        const match = line.match(/^\d+[\.\)]\s+\*{0,2}(.+?)\*{0,2}:?$/);
+        if (match) {
+            const name = match[1].trim().replace(/'/g, '');
+            html += `<div class="recipe-card">
+                <div class="recipe-name">${match[1].trim()}</div>
+                <div class="recipe-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="getFullRecipe('${name}')"><i class="ti ti-book"></i> Recipe</button>
+                    <button class="btn btn-success btn-sm" onclick="askIfCooked('${name}')"><i class="ti ti-check"></i> Cooked</button>
+                </div>
+            </div>`;
+        } else if (line.trim()) {
+            html += `<p style="font-size:13px; color:#777; margin:4px 0; line-height:1.6;">${line}</p>`;
+        }
+    });
+    return html + '</div>';
+}
+
+async function getRecipes(src) {
+    if (inventory.length === 0) { alert('Add some vegetables first!'); return; }
+    const out = document.getElementById('recipes-output-' + src);
+    out.innerHTML = '<div class="output-box"><i class="ti ti-loader spinner"></i> Getting recipes...</div>';
+    const res = await fetch('/suggest', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inventory })
+    });
+    const data = await res.json();
+    out.innerHTML = buildRecipeHTML(data.recipes, src);
+}
+
+async function searchRecipe(src) {
+    const recipe = document.getElementById('recipeInput-' + src).value.trim();
+    if (!recipe) { alert('Enter a recipe name!'); return; }
+    const out = document.getElementById('search-output-' + src);
+    out.innerHTML = '<div class="output-box"><i class="ti ti-loader spinner"></i> Searching...</div>';
+    const res = await fetch('/recipe_search', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipe_name: recipe, inventory })
+    });
+    const data = await res.json();
+
+    let missingHtml = '';
+    if (data.missing && data.missing.length > 0) {
+        addToShopping(data.missing);
+        missingHtml = `<div class="missing-box">
+            <b><i class="ti ti-shopping-cart"></i> Added to shopping list:</b>
+            <span>${data.missing.join(', ')}</span>
+        </div>`;
+    }
+
+    const safeRecipe = recipe.replace(/'/g, '');
+    out.innerHTML = `
+        <div class="output-box">${data.result}</div>
+        ${missingHtml}
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="getFullRecipe('${safeRecipe}')"><i class="ti ti-chef-hat"></i> How to make?</button>
+            <button class="btn btn-success btn-sm" onclick="askIfCooked('${safeRecipe}')"><i class="ti ti-check"></i> I cooked this!</button>
+        </div>`;
+}
+
+async function getFullRecipe(name) {
+    document.getElementById('modal-title').textContent = name;
+    document.getElementById('modal-content').innerHTML = '<i class="ti ti-loader spinner"></i> Loading...';
+    document.getElementById('modal').classList.add('open');
+    const res = await fetch('/full_recipe', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipe_name: name })
+    });
+    const data = await res.json();
+    document.getElementById('modal-content').textContent = data.result;
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+updateInventoryUI();
+updateShoppingUI();
+updateHistoryUI();
+</script>
+</body>
+</html>
